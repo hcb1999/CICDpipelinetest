@@ -20,7 +20,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Welcome to my React App</h1>
+      <h1>CI CD test</h1>
     </div>
   );
 }
