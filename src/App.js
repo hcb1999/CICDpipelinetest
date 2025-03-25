@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 function App() {
-  const [data, setData] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
