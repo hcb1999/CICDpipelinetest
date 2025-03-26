@@ -19,7 +19,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>CI CD 테스트</h1>
+      <h1>CI CD 테스트ㅇ</h1>
     </div>
   );
 }
