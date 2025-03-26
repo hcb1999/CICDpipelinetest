@@ -3,18 +3,15 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - master
-      - develop
-  pull_request:
-    branches:
-      - develop
+      - master  # master 브랜치 푸시 시 프로덕션 배포
+      - develop # develop 브랜치 푸시 시 스테이징 배포
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 리포지토리의 코드를 체크아웃
+      # 1. 리포지토리 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -22,28 +19,21 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '18'
 
       # 3. 의존성 설치
       - name: Install dependencies
         run: npm install
 
-      # 4. 테스트 실행
-     # - name: Run tests
-       # run: npm test
-
-      # 5. 빌드 생성
+      # 4. 빌드 실행
       - name: Build project
         run: npm run build
 
-      # 6. 스테이징 서버로 배포
-      - name: Deploy to staging
-        if: github.ref == 'refs/heads/develop'  # develop 브랜치에만 배포
-        run: |
-          scp -r ./build/* user@staging-server:/var/www/staging
-
-      # 7. 프로덕션 서버로 배포
+      # 5. 프로덕션 서버 배포 (master 브랜치)
       - name: Deploy to production
-        if: github.ref == 'refs/heads/main'  # main 브랜치에만 배포
+        if: github.ref == 'refs/heads/master'
         run: |
-          scp -r ./build/* user@production-server:/var/www/html
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+          scp -r -i private_key.pem ./build/* naegift@kasset-dev.avataroad.com:/var/www/html
+          ssh -i private_key.pem naegift@kasset-dev.avataroad.com "sudo systemctl restart nginx"
