@@ -19,7 +19,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>CI CD 테스트 /var/www/html 권한 755부여 및 root - naegift 변경</h1>
+      <h1>CI CD 테스트 /var/www/html 권한 755부여 및 root - naegift 변경 ci cd 설정 완료후 2번쨰 테스트</h1>
     </div>
   );
 }
