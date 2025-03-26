@@ -42,7 +42,9 @@ jobs:
           # SSH_PRIVATE_KEY는 GitHub Secrets에 저장된 기존 키를 사용
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
+          # 프로덕션 서버로 파일을 배포
           scp -o StrictHostKeyChecking=no -r -i private_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
+          # nginx 재시작
           ssh -o StrictHostKeyChecking=no -i private_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
 
       # 7. 스테이징 서버 배포 (develop 브랜치)
@@ -51,5 +53,7 @@ jobs:
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
+          # 스테이징 서버로 파일을 배포
           scp -o StrictHostKeyChecking=no -r -i private_key.pem ./build/* naegift@staging-server:/var/www/staging
+          # nginx 재시작
           ssh -o StrictHostKeyChecking=no -i private_key.pem naegift@staging-server "sudo systemctl restart nginx"
