@@ -35,29 +35,21 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H www-dev.naegift.com >> ~/.ssh/known_hosts
 
-      # 6. SSH_PRIVATE_KEY 시크릿 키 확인 (디버깅 용도)
-      - name: Verify SSH_PRIVATE_KEY
-        run: |
-          echo "Verifying SSH_PRIVATE_KEY"
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
-          ls -l private_key.pem # 파일이 잘 생성되었는지 확인
-          cat private_key.pem | head -n 5 # 첫 5줄만 출력 (전체 출력은 하지 않음)
-
-      # 7. 프로덕션 서버 배포 (master 브랜치)
+      # 6. 프로덕션 서버 배포 (master 브랜치)
       - name: Deploy to production
         if: github.ref == 'refs/heads/master'
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
-          scp -o StrictHostKeyChecking=no -r -i private_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
-          ssh -o StrictHostKeyChecking=no -i private_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
+          # SSH_PRIVATE_KEY는 GitHub Secrets에 저장된 기존 키를 사용
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > naegift-dev2_key.pem
+          chmod 600 naegift-dev2_key.pem
+          scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
+          ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
 
-      # 8. 스테이징 서버 배포 (develop 브랜치)
+      # 7. 스테이징 서버 배포 (develop 브랜치)
       - name: Deploy to staging
         if: github.ref == 'refs/heads/develop'
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
-          scp -o StrictHostKeyChecking=no -r -i private_key.pem ./build/* naegift@staging-server:/var/www/staging
-          ssh -o StrictHostKeyChecking=no -i private_key.pem naegift@staging-server "sudo systemctl restart nginx"
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > naegift-dev2_key.pem
+          chmod 600 naegift-dev2_key.pem
+          scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@staging-server:/var/www/staging
+          ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@staging-server "sudo systemctl restart nginx"
