@@ -51,5 +51,5 @@ jobs:
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > naegift-dev2_key.pem
           chmod 600 naegift-dev2_key.pem
-          scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@staging-server:/var/www/staging
-          ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@staging-server "sudo systemctl restart nginx"
+          scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
+          ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
