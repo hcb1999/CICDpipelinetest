@@ -29,21 +29,27 @@ jobs:
       - name: Build project
         run: npm run build
 
-      # 5. 프로덕션 서버 배포 (master 브랜치)
+      # 5. 서버 호스트 키 추가 (호스트 키 검증 오류 방지)
+      - name: Add SSH host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H www-dev.naegift.com >> ~/.ssh/known_hosts
+
+      # 6. 프로덕션 서버 배포 (master 브랜치)
       - name: Deploy to production
         if: github.ref == 'refs/heads/master'
         run: |
           # SSH_PRIVATE_KEY는 GitHub Secrets에 저장된 기존 키를 사용
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
-          scp -r -i private_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
-          ssh -i private_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
+          scp -o StrictHostKeyChecking=no -r -i private_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
+          ssh -o StrictHostKeyChecking=no -i private_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
 
-      # 6. 스테이징 서버 배포 (develop 브랜치)
+      # 7. 스테이징 서버 배포 (develop 브랜치)
       - name: Deploy to staging
         if: github.ref == 'refs/heads/develop'
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
-          scp -r -i private_key.pem ./build/* naegift@staging-server:/var/www/staging
-          ssh -i private_key.pem naegift@staging-server "sudo systemctl restart nginx"
+          scp -o StrictHostKeyChecking=no -r -i private_key.pem ./build/* naegift@staging-server:/var/www/staging
+          ssh -o StrictHostKeyChecking=no -i private_key.pem naegift@staging-server "sudo systemctl restart nginx"
