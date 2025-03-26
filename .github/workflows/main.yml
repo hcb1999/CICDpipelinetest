@@ -40,16 +40,16 @@ jobs:
         if: github.ref == 'refs/heads/master'
         run: |
           # SSH_PRIVATE_KEY는 GitHub Secrets에 저장된 기존 키를 사용
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > naegift-dev2_key.pem
-          chmod 600 naegift-dev2_key.pem
-          scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
-          ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
+          echo "${{ secrets.SSH_PRIVATE_KEY_AZURE_GIVU_TEST }}" > naegift-test_key.pem
+          chmod 600 naegift-test_key.pem
+          scp -o StrictHostKeyChecking=no -r -i naegift-test_key.pem ./build/* naegift@www-test.naegift.com:/var/www/html
+          ssh -o StrictHostKeyChecking=no -i naegift-test_key.pem naegift@www-test.naegift.com "sudo systemctl restart nginx"
 
       # 7. 스테이징 서버 배포 (develop 브랜치)
       - name: Deploy to staging
         if: github.ref == 'refs/heads/develop'
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > naegift-dev2_key.pem
+          echo "${{ secrets.SSH_PRIVATE_KEY_AZURE_GIVU_DEV }}" > naegift-dev2_key.pem
           chmod 600 naegift-dev2_key.pem
           scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
           ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
