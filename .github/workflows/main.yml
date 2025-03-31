@@ -1,7 +1,7 @@
 name: CI/CD Pipeline
 
 on:
-  push:
+  pull_request:
     branches:
       - master  # master 브랜치 푸시 시 프로덕션 배포
       - develop # develop 브랜치 푸시 시 스테이징 배포
