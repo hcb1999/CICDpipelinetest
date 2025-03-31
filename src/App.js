@@ -19,7 +19,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>CI CD dev 환경 3/31일 테스트 </h1>
+      <h1>CI CD dev 환경 3/31일 테스트 2번쨰 </h1>
     </div>
   );
 }
