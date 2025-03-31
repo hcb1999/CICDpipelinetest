@@ -19,7 +19,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>test 환경s제발</h1>
+      <h1>버전 1.01</h1>
     </div>
   );
 }
