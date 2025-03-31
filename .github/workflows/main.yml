@@ -29,23 +29,16 @@ jobs:
       - name: Build project
         run: npm run build
 
-      # 5. 서버 호스트 키 추가 (호스트 키 검증 오류 방지)
-      - name: Add SSH host key
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H www-test.naegift.com >> ~/.ssh/known_hosts
-
-      # 6. 프로덕션 서버 배포 (master 브랜치)
+      # 5. 프로덕션 서버 배포 (master 브랜치)
       - name: Deploy to production
         if: github.ref == 'refs/heads/master'
         run: |
-          # SSH_PRIVATE_KEY는 GitHub Secrets에 저장된 기존 키를 사용
           echo "${{ secrets.SSH_PRIVATE_KEY_AZURE_GIVU_TEST }}" > naegift-test_key.pem
           chmod 600 naegift-test_key.pem
           scp -o StrictHostKeyChecking=no -r -i naegift-test_key.pem ./build/* naegift@www-test.naegift.com:/var/www/html
           ssh -o StrictHostKeyChecking=no -i naegift-test_key.pem naegift@www-test.naegift.com "sudo systemctl restart nginx"
 
-      # 7. 스테이징 서버 배포 (develop 브랜치)
+      # 6. 스테이징 서버 배포 (develop 브랜치)
       - name: Deploy to staging
         if: github.ref == 'refs/heads/develop'
         run: |
@@ -53,3 +46,23 @@ jobs:
           chmod 600 naegift-dev2_key.pem
           scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
           ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
+
+      # 7. 🔹 **자동 태깅 (master 브랜치)**
+      - name: Auto Increment Version and Tag for Production
+        if: github.ref == 'refs/heads/master'
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+
+          if [[ "$LATEST_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            MAJOR=$(echo $LATEST_TAG | cut -d. -f1 | sed 's/v//')
+            MINOR=$(echo $LATEST_TAG | cut -d. -f2)
+            PATCH=$(echo $LATEST_TAG | cut -d. -f3)
+            NEW_TAG="v$MAJOR.$MINOR.$((PATCH + 1))"
+          else
+            NEW_TAG="v1.0.0"
+          fi
+
+          echo "New Production Tag: $NEW_TAG"
+          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+          git push origin "$NEW_TAG"
