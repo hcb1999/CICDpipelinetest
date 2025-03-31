@@ -57,14 +57,15 @@ jobs:
       # 8. 🔹 자동 태깅 (master 브랜치에서 실행)
       - name: Auto Increment Version and Tag for Production
         if: github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           # 사용자 이름과 이메일 설정
           git config --global user.email "hcb1999@naver.com"
           git config --global user.name "hcb1999"
 
-          # GitHub 인증 설정
-          git config --global credential.helper 'store'
-          echo "https://github-actions:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
+          # GitHub 인증 설정 (토큰을 사용하여 인증)
+          git remote set-url origin https://hcb1999:${GH_TOKEN}@github.com/hcb1999/CICDpipelinetest.git
 
           git fetch --tags
           LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
@@ -81,3 +82,4 @@ jobs:
           echo "New Production Tag: $NEW_TAG"
           git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
           git push origin "$NEW_TAG"
+
