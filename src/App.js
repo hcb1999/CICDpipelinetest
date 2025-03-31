@@ -19,7 +19,7 @@ function App() {
 
   return (
     <div className="App">
-      <h1>권한 부여후 테스트 환경 배포 진행 과연...</h1>
+      <h1>test 환경</h1>
     </div>
   );
 }
