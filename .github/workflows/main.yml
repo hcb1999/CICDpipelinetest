@@ -11,32 +11,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 리포지토리 코드 체크아웃
+      # 1️⃣ 리포지토리 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          persist-credentials: false  # GitHub 기본 인증 제거 (PAT 사용 예정)
 
-      # 2. Node.js 환경 설정
+      # 2️⃣ Node.js 환경 설정
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '18'
 
-      # 3. 의존성 설치
+      # 3️⃣ 의존성 설치
       - name: Install dependencies
         run: npm install
 
-      # 4. 빌드 실행
+      # 4️⃣ 빌드 실행
       - name: Build project
         run: npm run build
 
-      # 5. 서버 호스트 키 추가 (호스트 키 검증 오류 방지)
+      # 5️⃣ 서버 호스트 키 추가 (호스트 키 검증 오류 방지)
       - name: Add SSH host key
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H www-test.naegift.com >> ~/.ssh/known_hosts
-          ssh-keyscan -H www-dev.naegift.com >> ~/.ssh/known_hosts
 
-      # 6. 프로덕션 서버 배포 (master 브랜치)
+      # 6️⃣ 프로덕션 서버 배포 (master 브랜치)
       - name: Deploy to production
         if: github.ref == 'refs/heads/master'
         run: |
@@ -45,7 +46,7 @@ jobs:
           scp -o StrictHostKeyChecking=no -r -i naegift-test_key.pem ./build/* naegift@www-test.naegift.com:/var/www/html
           ssh -o StrictHostKeyChecking=no -i naegift-test_key.pem naegift@www-test.naegift.com "sudo systemctl restart nginx"
 
-      # 7. 스테이징 서버 배포 (develop 브랜치)
+      # 7️⃣ 스테이징 서버 배포 (develop 브랜치)
       - name: Deploy to staging
         if: github.ref == 'refs/heads/develop'
         run: |
@@ -54,19 +55,17 @@ jobs:
           scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
           ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
 
-      # 8. 🔹 자동 태깅 (master 브랜치에서 실행)
-      - name: Auto Increment Version and Tag for Production
-        if: github.ref == 'refs/heads/master'
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      # 8️⃣ GitHub 인증 설정 (PAT 토큰 사용)
+      - name: Set up Git credentials
         run: |
-          # 사용자 이름과 이메일 설정
           git config --global user.email "hcb1999@naver.com"
           git config --global user.name "hcb1999"
+          git remote set-url origin https://hcb1999:${{ secrets.GH_TOKEN }}@github.com/hcb1999/CICDpipelinetest.git
 
-          # GitHub 인증 설정 (토큰을 사용하여 인증)
-          git remote set-url origin https://hcb1999:${GH_TOKEN}@github.com/hcb1999/CICDpipelinetest.git
-
+      # 9️⃣ 자동 태깅 (master 브랜치)
+      - name: Auto Increment Version and Tag for Production
+        if: github.ref == 'refs/heads/master'
+        run: |
           git fetch --tags
           LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
 
@@ -82,4 +81,3 @@ jobs:
           echo "New Production Tag: $NEW_TAG"
           git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
           git push origin "$NEW_TAG"
-
