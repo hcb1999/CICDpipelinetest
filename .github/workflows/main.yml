@@ -45,7 +45,7 @@ jobs:
           scp -o StrictHostKeyChecking=no -r -i naegift-test_key.pem ./build/* naegift@www-test.naegift.com:/var/www/html
           ssh -o StrictHostKeyChecking=no -i naegift-test_key.pem naegift@www-test.naegift.com "sudo systemctl restart nginx"
 
-# 7. 🔹 **자동 태깅 (master 브랜치)**
+# 7. Auto Increment Version and Tag for Production
       - name: Auto Increment Version and Tag for Production
         if: github.ref == 'refs/heads/master'
         run: |
@@ -54,7 +54,8 @@ jobs:
           git config --global user.name "hcb1999"
 
           # GitHub 인증 설정
-          echo "${{ secrets.GH_TOKEN }}" | git credential approve
+          git config --global credential.helper 'store'
+          echo "https://github-actions:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
 
           git fetch --tags
           LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
