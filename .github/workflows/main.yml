@@ -1,10 +1,8 @@
-name: CI/CD Pipeline
-
 on:
   pull_request:
     branches:
-      - release  # release 브랜치로 병합 시 프로덕션 배포 준비
-      - develop  # develop 브랜치로 병합 시 스테이징 배포
+      - release  # develop -> release PR 시 테스트 환경 배포
+      - develop  # feature -> develop PR 시 개발 환경 배포
 
 jobs:
   build:
@@ -37,18 +35,18 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H www-test.naegift.com >> ~/.ssh/known_hosts
 
-      # 6️⃣ Test 서버 배포 (develop 브랜치)
+      # 6️⃣ Test 서버 배포 (develop 브랜치로 PR 머지 시)
       - name: Deploy to test server
-        if: github.ref == 'refs/heads/develop'
+        if: github.base_ref == 'develop'
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY_AZURE_GIVU_DEV }}" > naegift-dev2_key.pem
           chmod 600 naegift-dev2_key.pem
           scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
           ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
 
-      # 7️⃣ Staging 서버 배포 (release 브랜치)
+      # 7️⃣ Staging 서버 배포 (release 브랜치로 PR 머지 시)
       - name: Deploy to staging server
-        if: github.ref == 'refs/heads/release'
+        if: github.base_ref == 'release'
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY_AZURE_GIVU_TEST }}" > naegift-test_key.pem
           chmod 600 naegift-test_key.pem
@@ -64,7 +62,7 @@ jobs:
 
       # 9️⃣ 자동 태깅 (release 브랜치에서)
       - name: Auto Increment Version and Tag for Staging
-        if: github.ref == 'refs/heads/release'
+        if: github.base_ref == 'release'
         run: |
           git fetch --tags
           LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
