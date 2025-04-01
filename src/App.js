@@ -26,7 +26,7 @@ function App() {
         onChange={(e) => setTodo(e.target.value)}
         placeholder="Add a new task"
       />
-      <button onClick={handleAddTodo}>Add Todo(수정)</button>
+      <button onClick={handleAddTodo}>Add Todo(테스트 후 배포 진행)</button>
       <ul>
         {todos.map((todo, index) => (
           <li key={index}>
