@@ -20,13 +20,15 @@ function App() {
   return (
     <div className="App">
       <h1>Todo List</h1>
+      <h1>함창범 이름 추가</h1>
+
       <input
         type="text"
         value={todo}
         onChange={(e) => setTodo(e.target.value)}
         placeholder="Add a new task"
       />
-      <button onClick={handleAddTodo}>Add Todo(테스트 후 배포 진행)</button>
+      <button onClick={handleAddTodo}>Add Todo</button>
       <ul>
         {todos.map((todo, index) => (
           <li key={index}>
