@@ -19,6 +19,7 @@ function App() {
 
   return (
     <div className="App">
+
       <h1>Todo List</h1>
       <h1>test계정</h1>
 
@@ -37,6 +38,9 @@ function App() {
           </li>
         ))}
       </ul>
+
+      <h1>버전 1.01</h1>
+
     </div>
   );
 }
