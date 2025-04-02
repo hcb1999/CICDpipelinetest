@@ -1,10 +1,8 @@
-name: CI/CD Pipeline
-
 on:
-  push:
+  pull_request:
     branches:
-      - master  # master 브랜치 푸시 시 프로덕션 배포
-      - develop # develop 브랜치 푸시 시 스테이징 배포
+      - release  # develop -> release PR 시 테스트 환경 배포
+      - develop  # feature -> develop PR 시 개발 환경 배포
 
 jobs:
   build:
@@ -37,23 +35,23 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H www-test.naegift.com >> ~/.ssh/known_hosts
 
-      # 6️⃣ 프로덕션 서버 배포 (master 브랜치)
-      - name: Deploy to production
-        if: github.ref == 'refs/heads/master'
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY_AZURE_GIVU_TEST }}" > naegift-test_key.pem
-          chmod 600 naegift-test_key.pem
-          scp -o StrictHostKeyChecking=no -r -i naegift-test_key.pem ./build/* naegift@www-test.naegift.com:/var/www/html
-          ssh -o StrictHostKeyChecking=no -i naegift-test_key.pem naegift@www-test.naegift.com "sudo systemctl restart nginx"
-
-      # 7️⃣ 스테이징 서버 배포 (develop 브랜치)
-      - name: Deploy to staging
-        if: github.ref == 'refs/heads/develop'
+      # 6️⃣ Test 서버 배포 (develop 브랜치로 PR 머지 시)
+      - name: Deploy to test server
+        if: github.base_ref == 'develop'
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY_AZURE_GIVU_DEV }}" > naegift-dev2_key.pem
           chmod 600 naegift-dev2_key.pem
           scp -o StrictHostKeyChecking=no -r -i naegift-dev2_key.pem ./build/* naegift@www-dev.naegift.com:/var/www/html
           ssh -o StrictHostKeyChecking=no -i naegift-dev2_key.pem naegift@www-dev.naegift.com "sudo systemctl restart nginx"
+
+      # 7️⃣ Staging 서버 배포 (release 브랜치로 PR 머지 시)
+      - name: Deploy to staging server
+        if: github.base_ref == 'release'
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY_AZURE_GIVU_TEST }}" > naegift-test_key.pem
+          chmod 600 naegift-test_key.pem
+          scp -o StrictHostKeyChecking=no -r -i naegift-test_key.pem ./build/* naegift@www-test.naegift.com:/var/www/html
+          ssh -o StrictHostKeyChecking=no -i naegift-test_key.pem naegift@www-test.naegift.com "sudo systemctl restart nginx"
 
       # 8️⃣ GitHub 인증 설정 (PAT 토큰 사용)
       - name: Set up Git credentials
@@ -62,9 +60,9 @@ jobs:
           git config --global user.name "hcb1999"
           git remote set-url origin https://hcb1999:${{ secrets.GH_TOKEN }}@github.com/hcb1999/CICDpipelinetest.git
 
-      # 9️⃣ 자동 태깅 (master 브랜치)
-      - name: Auto Increment Version and Tag for Production
-        if: github.ref == 'refs/heads/master'
+      # 9️⃣ 자동 태깅 (release 브랜치에서)
+      - name: Auto Increment Version and Tag for Staging
+        if: github.base_ref == 'release'
         run: |
           git fetch --tags
           LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
@@ -78,6 +76,7 @@ jobs:
             NEW_TAG="v1.0.0"
           fi
 
-          echo "New Production Tag: $NEW_TAG"
+          echo "New Staging Tag: $NEW_TAG"
           git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
           git push origin "$NEW_TAG"
+
