@@ -20,7 +20,7 @@ function App() {
   return (
     <div className="App">
       <h1>Todo List</h1>
-      <h1>test계정</h1>
+      <h1>A기능 개발 완료(함창범 테스트 계정)</h1>
 
       <input
         type="text"
