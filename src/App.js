@@ -20,7 +20,7 @@ function App() {
   return (
     <div className="App">
       <h1>Todo List</h1>
-      <h1>함창범 이름 추가</h1>
+      <h1>test계정</h1>
 
       <input
         type="text"
